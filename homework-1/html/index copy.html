@@ -1,0 +1,251 @@
+<!DOCTYPE html PUBLIC>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<title>1주차 과제 실습</title>
+</head>
+
+<body>
+
+	<!-- <table id="list-table" width="100" border="1"></table> -->
+	<div class="app">
+		<table id="tblTodo">
+			<caption></caption>
+			<colgroup>
+				<col width="10%" />
+				<col width="5%" />
+				<col width="10%" />
+				<col width="10%" />
+				<col width="10%" />
+				<col width="10%" />
+				<col width="10%" />
+				<col width="10%" />
+				<col width="10%" />
+				<col width="10%" />
+			</colgroup>
+			<thead>
+				<tr>
+					<th>id</th>
+					<th>uid</th>
+					<th>password</th>
+					<th>first_name</th>
+					<th>last_name</th>
+					<th>username</th>
+					<th>email</th>
+					<th>avatar</th>
+					<th>gender</th>
+					<th>phone_number</th>
+					<th>city</th>
+				</tr>
+			</thead>
+			<tbody></tbody>
+		</table>
+		<div class="paging">
+			<i class="fa-solid fa-angles-left" id="first_page"></i>
+			<i class="fa-solid fa-angles-left" id="prev_page"></i>
+			<div class="pages">
+				<span class="active">1&nbsp;</span>
+				<span>2&nbsp;</span>
+				<span>3&nbsp;</span>
+				<span>4&nbsp;</span>
+				<span>5&nbsp;</span>
+			</div>
+			<div>
+				남성 인원 계산 = <span id="male_result"></span><br />
+				여성 인원 계산 = <span id="female_result"></span><br />
+				거주지별 인원 계산 = <span id="state_result"></span><br />
+			</div>
+			<i class="fa-solid fa-angles-right" id="next_page"></i>
+			<i class="fa-solid fa-angles-right" id="last_page"></i>
+		</div>
+	</div>
+
+	<style>
+		.uuid {
+			font-size: 0.4rem;
+		}
+	</style>
+
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+	<script type="text/javascript">
+
+		let todoData = [];
+		const countPerPage = 10; // 페이지당 데이터 건수
+		const showPageCnt = 5; // 화면에 보일 페이지 번호 개수
+
+		$(function () {
+			const todosUrl = 'http://random-data-api.com/api/v2/users?size=100';
+			axios.get(todosUrl)
+				.then(res => {
+
+					todoData = res.data;
+					var male_count = 0;
+					var female_count = 0;
+
+					for (let i = 0; i < todoData.length; i++) {
+						if (todoData[i].gender === "Male") {
+							male_count++;
+						}
+						if (todoData[i].gender === "Female") {
+							female_count++;
+						}
+					}
+
+					console.log(`${todoData.length} 중에 남성은 ${male_count}명`)
+
+					$("#male_result").text(male_count + "명")
+					$("#female_result").text(female_count + "명")
+
+
+					console.log(male_count.length);
+					console.log(female_count.length);
+
+					const residence = todoData.map(x => { return x.address.state });
+					console.log(residence);
+					// console.log(
+					// 	residence.reduce((acc, item, i) => {
+					// 		if (acc[item] !== undefined && acc[item] !== null && acc[item] !== 0 && acc[item] !== false) acc[item] += 1
+					// 		else acc[item] = 1
+					// 		return acc;
+					// 	}, {})
+					// );
+					var residence_map = new Map();
+					for (let i = 0; i < residence.length; i++) {
+						if (residence_map.has(residence[i])) {
+							residence_map.set(residence[i], residence_map.get(residence[i]) + 1);
+						} else {
+							residence_map.set(residence[i], 1);
+						}
+					}
+					let residenceHtml = "";
+
+					residence_map.forEach(function (value, key) {
+						residenceHtml += key + ":" + value + "명<br>";
+					});
+					$("#state_result").html(residenceHtml)
+
+					// let map = new Map();
+					// for(let i = 0; i < todoData.length; i++) {
+					// 	if(map.get(todoData.address.city)) {
+					// 		map.set(todoData.address.city, )
+					// 	}
+					// 	map.set(todoData.address.city, 0);
+					// }
+
+					setTable(1);
+					setPaging(1);
+				})
+				.catch(err => console.error(err))
+				.then(() => {
+					// finally
+				});
+
+			$(document).on('click', 'div.paging>div.pages>span', function () {
+				if (!$(this).hasClass('active')) {
+					$(this).parent().find('span.active').removeClass('active');
+					$(this).addClass('active');
+
+					setTable(Number($(this).text()));
+				}
+			});
+
+			$(document).on('click', 'div.paging>i', function () {
+				const totalPage = Math.floor(todoData.length / countPerPage) + (todoData.length % countPerPage == 0 ? 0 : 1);
+				const id = $(this).attr('id');
+				//console.log(id);
+
+				if (id == 'first_page') {
+					setTable(1);
+					setPaging(1);
+				} else if (id == 'prev_page') {
+					let arrPages = [];
+					$('div.paging>div.pages>span').each(function (idx, item) {
+						arrPages.push(Number($(this).text()));
+					});
+
+					const prevPage = _.min(arrPages) - showPageCnt;
+					setTable(prevPage);
+					setPaging(prevPage);
+				} else if (id == 'next_page') {
+					let arrPages = [];
+					$('div.paging>div.pages>span').each(function (idx, item) {
+						arrPages.push(Number($(this).text()));
+					});
+
+					const nextPage = _.max(arrPages) + 1;
+					setTable(nextPage);
+					setPaging(nextPage);
+				} else if (id == 'last_page') {
+					const lastPage = Math.floor((totalPage - 1) / showPageCnt) * showPageCnt + 1;
+					setTable(lastPage);
+					setPaging(lastPage);
+				}
+			});
+
+		});
+
+		function setTable(pageNum) {
+			$('#tblTodo>tbody').empty();
+
+			// filtering data
+			const filteredData = todoData.slice((pageNum - 1) * countPerPage, pageNum * countPerPage);
+			//console.log(filteredData);
+
+			let sTbodyHtml = '';
+			for (let i = 0; i < filteredData.length; i++) {
+				sTbodyHtml += '<tr>';
+				sTbodyHtml += '  <td>' + filteredData[i].id + '</td>';
+				sTbodyHtml += '  <td class="uuid">' + filteredData[i].uid + '</td>';
+				sTbodyHtml += '  <td>' + filteredData[i].password + '</td>';
+				sTbodyHtml += '  <td>' + filteredData[i].first_name + '</td>';
+				sTbodyHtml += '  <td>' + filteredData[i].last_name + '</td>';
+				sTbodyHtml += '  <td>' + filteredData[i].username + '</td>';
+				sTbodyHtml += '  <td>' + filteredData[i].email + '</td>';
+				sTbodyHtml += '  <td>' + filteredData[i].avatar + '</td>';
+				sTbodyHtml += '  <td>' + filteredData[i].gender + '</td>';
+				sTbodyHtml += '  <td>' + filteredData[i].phone_number + '</td>';
+				sTbodyHtml += '  <td>' + filteredData[i].city + '</td>';
+				sTbodyHtml += '</tr>';
+			}
+			$('#tblTodo>tbody').append(sTbodyHtml);
+		}
+
+
+		function setPaging(pageNum) {
+			const currentPage = pageNum;
+			const totalPage = Math.floor(todoData.length / countPerPage) + (todoData.length % countPerPage == 0 ? 0 : 1);
+
+			showAllIcon();
+
+			if (currentPage <= showPageCnt) {
+				$('#first_page').hide();
+				$('#prev_page').hide();
+			}
+			if (
+				totalPage <= showPageCnt ||
+				Math.floor((currentPage - 1) / showPageCnt) * showPageCnt + showPageCnt + 1 > totalPage
+			) {
+				$('#next_page').hide();
+				$('#last_page').hide();
+			}
+
+			let start = Math.floor((currentPage - 1) / showPageCnt) * showPageCnt + 1;
+			let sPagesHtml = '';
+			for (const end = start + showPageCnt; start < end && start <= totalPage; start++) {
+				sPagesHtml += '<span class="' + (start == currentPage ? 'active' : '') + '">' + start + '</span>';
+			}
+			$('div.paging>div.pages').html(sPagesHtml);
+		}
+
+		function showAllIcon() {
+			$('#first_page').show();
+			$('#prev_page').show();
+			$('#next_page').show();
+			$('#last_page').show();
+		}
+	</script>
+</body>
+
+</html>

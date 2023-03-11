@@ -1,0 +1,108 @@
+<!DOCTYPE html PUBLIC>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<title>1주차 과제 실습</title>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+	<script type="text/javascript">
+		$(document).ready(function () {
+
+			$.ajax({
+				type: "GET",
+				url: "http://random-data-api.com/api/v2/users?size=100",
+
+				success: function (result) {
+					alert("통신 성공");
+					$("#list-table").append(
+						$("<tr></tr>")
+							.append($("<td></td>").text("id"))
+							.append($("<td></td>").text("uid"))
+							.append($("<td></td>").text("password"))
+							.append($("<td></td>").text("first_name"))
+							.append($("<td></td>").text("last_name"))
+							.append($("<td></td>").text("username"))
+							.append($("<td></td>").text("email"))
+							.append($("<td></td>").text("avatar"))
+							.append($("<td></td>").text("gender"))
+							.append($("<td></td>").text("phone_number"))
+					);
+					$(result).each(function () {
+						$("#list-table").append(
+							$("<tr></tr>")
+								.append($("<td></td>").text(this.id))
+								.append($("<td></td>").text(this.uid))
+								.append($("<td></td>").text(this.password))
+								.append($("<td></td>").text(this.first_name))
+								.append($("<td></td>").text(this.last_name))
+								.append($("<td></td>").text(this.username))
+								.append($("<td></td>").text(this.email))
+								.append($("<td></td>").text(this.avatar))
+								.append($("<td></td>").text(this.gender))
+								.append($("<td></td>").text(this.phone_number))
+
+
+						);
+					});
+				},
+				error: function (xhr, status, error) {
+					alert("통신 에러");
+				}
+			});
+
+		});
+
+	</script>
+</head>
+
+<body>
+
+	<table id="list-table" width="100" border="1"></table>
+	<div class="app">
+		<table id="tbleTodo">
+			<caption></caption>
+			<colgroup>
+				<col width="10%" />
+				<col width="5%" />
+				<col width="10%" />
+				<col width="10%" />
+				<col width="10%" />
+				<col width="10%" />
+				<col width="10%" />
+				<col width="10%" />
+				<col width="10%" />
+				<col width="10%" />
+			</colgroup>
+			<thead>
+				<tr>
+					<th>id</th>
+					<th>uid</th>
+					<th>password]</th>
+					<th>first_name</th>
+					<th>last_name</th>
+					<th>username</th>
+					<th>email</th>
+					<th>avatar</th>
+					<th>gender</th>
+					<th>phone_number</th>
+				</tr>
+			</thead>
+			<tbody></tbody>
+		</table>
+		<div class="paging">
+			<i class="fa-solid fa-angles-left" id="first_page"></i>
+			<i class="fa-solid fa-angles-left" id="prev_page"></i>
+			<div class="pages">
+				<span class="active">1</span>
+				<span>2</span>
+				<span>3</span>
+				<span>4</span>
+				<span>5</span>
+			</div>
+			<i class="fa-solid fa-angles-right" id="next_page"></i>
+			<i class="fa-solid fa-angles-right" id="last_page"></i>
+		</div>
+	</div>
+</body>
+
+</html>
